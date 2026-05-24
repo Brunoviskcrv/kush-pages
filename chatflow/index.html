@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatFlow — Plataforma de atendimento omnichannel via chat com IA, widget embed e painel de operadores em tempo real</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+<style>
+:root {
+  --bg: #07070F;
+  --surface: #0F0F1A;
+  --card: #131321;
+  --border: #1E1E32;
+  --primary: #4f46e5;
+  --primary-dim: #4f46e526;   /* ~15% opacity */
+  --primary-glow: #4f46e559;  /* ~35% opacity */
+  --text: #F1F5F9;
+  --text-2: #94A3B8;
+  --text-3: #475569;
+  --green: #22C55E;
+  --yellow: #F59E0B;
+  --red: #EF4444;
+  --blue: #3B82F6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', sans-serif; line-height: 1.6;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(7,7,15,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; }
+.nav-logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+.nav-links { display: flex; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-2); text-decoration: none; font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--primary); }
+.nav-phase {
+  font-size: 0.72rem; padding: 0.25rem 0.75rem; border-radius: 20px;
+  background: var(--primary-dim); color: var(--primary);
+  border: 1px solid var(--primary-glow); font-weight: 600;
+}
+
+section { padding: 7rem 2rem 4rem; max-width: 900px; margin: 0 auto; }
+.section-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem; }
+.section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; color: var(--text); }
+.section-sub { font-size: 1rem; color: var(--text-2); max-width: 620px; line-height: 1.7; }
+
+#hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; padding-top: 80px;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content: ''; position: absolute; top: -200px; left: 50%;
+  transform: translateX(-50%); width: 800px; height: 800px;
+  background: radial-gradient(circle, #4f46e51f 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.9rem; border-radius: 20px;
+  background: var(--primary-dim); border: 1px solid var(--primary-glow);
+  font-size: 0.75rem; font-weight: 600; color: var(--primary);
+  margin-bottom: 1.5rem; width: fit-content;
+}
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+.hero-title { font-size: clamp(2.8rem, 8vw, 5rem); font-weight: 900; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
+.hero-title span { background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-tagline { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1rem; transition: border-color 0.2s, transform 0.2s; }
+.stat-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.stat-num { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 0.73rem; color: var(--text-2); line-height: 1.4; }
+
+.terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.terminal-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: var(--card); border-bottom: 1px solid var(--border); }
+.terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+.terminal-dot:nth-child(1) { background: #EF4444; }
+.terminal-dot:nth-child(2) { background: #F59E0B; }
+.terminal-dot:nth-child(3) { background: #22C55E; }
+.terminal-title { margin-left: 0.5rem; font-size: 0.72rem; color: var(--text-3); }
+.terminal-body { padding: 1.25rem; min-height: 220px; display: flex; flex-direction: column; gap: 0.4rem; }
+.t-line { display: flex; gap: 0.6rem; opacity: 0; transform: translateX(-4px); transition: opacity 0.3s, transform 0.3s; line-height: 1.6; }
+.t-line.visible { opacity: 1; transform: none; }
+.t-who { flex-shrink: 0; font-size: 0.7rem; font-weight: 600; }
+.t-who.you { color: var(--primary); }
+.t-who.bot { color: var(--text-3); }
+.t-msg { color: var(--text-2); }
+.t-msg.gen { color: #818CF8; }
+.t-msg.ok { color: var(--green); }
+.t-cursor { display: inline-block; width: 8px; height: 1em; background: var(--primary); animation: blink 1s step-end infinite; vertical-align: middle; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.card:hover { border-color: var(--primary-glow); transform: translateY(-3px); box-shadow: 0 8px 30px var(--primary-dim); }
+
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+.stack-group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.stack-group-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tag { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+.tag.primary { background: var(--primary-dim); border-color: var(--primary-glow); color: var(--primary); }
+
+.flow-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; transition: border-color 0.2s; }
+.flow-card:hover { border-color: var(--primary-glow); }
+.flow-title { font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
+.flow-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--primary-dim); border: 1px solid var(--primary-glow); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.flow-steps { display: flex; flex-direction: column; gap: 0; }
+.flow-step { display: flex; gap: 1rem; align-items: flex-start; }
+.step-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-dim); border: 1px solid var(--primary-glow); color: var(--primary); font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.step-connector { width: 1px; flex: 1; min-height: 20px; background: var(--border); margin: 3px 0; }
+.step-text { font-size: 0.84rem; color: var(--text-2); padding-bottom: 1rem; line-height: 1.55; }
+
+.module-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; transition: border-color 0.2s, transform 0.2s; }
+.module-card:hover { border-color: var(--primary-glow); transform: translateY(-3px); }
+.module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.module-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.module-badge { font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 6px; background: var(--primary-dim); color: var(--primary); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.module-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.6; }
+.module-features { display: flex; flex-direction: column; gap: 0.4rem; }
+.feature-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: var(--text-2); }
+.feature-item::before { content: '▸'; color: var(--primary); flex-shrink: 0; margin-top: 0.05rem; }
+.module-terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.875rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; }
+.mt-cmd { color: var(--text-3); margin-bottom: 0.3rem; }
+.mt-cmd::before { content: '$ '; color: var(--primary); }
+.mt-res { color: var(--green); }
+
+.roadmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.roadmap-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; position: relative; overflow: hidden; transition: border-color 0.2s; }
+.roadmap-card.done    { border-top: 3px solid var(--green); }
+.roadmap-card.current { border-top: 3px solid var(--primary); box-shadow: 0 0 30px var(--primary-dim); }
+.roadmap-card.planned { border-top: 3px solid var(--yellow); }
+.roadmap-card.vision  { border-top: 3px solid var(--text-3); }
+.roadmap-card:hover { border-color: var(--primary-glow); }
+.roadmap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.roadmap-phase { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: var(--text-3); font-weight: 600; }
+.status-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 6px; }
+.status-badge.done    { background: rgba(34,197,94,0.15); color: var(--green); }
+.status-badge.current { background: var(--primary-dim); color: var(--primary); }
+.status-badge.planned { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.status-badge.vision  { background: rgba(71,85,105,0.3); color: var(--text-3); }
+.roadmap-title { font-weight: 700; font-size: 0.98rem; color: var(--text); margin-bottom: 0.2rem; }
+.roadmap-sub   { font-size: 0.78rem; color: var(--text-3); margin-bottom: 1rem; }
+.roadmap-items { display: flex; flex-direction: column; gap: 0.45rem; }
+.roadmap-item  { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.79rem; color: var(--text-2); line-height: 1.45; }
+.ri-icon { flex-shrink: 0; margin-top: 0.1rem; font-size: 0.7rem; }
+.done    .ri-icon { color: var(--green); }
+.current .ri-icon { color: var(--primary); }
+.planned .ri-icon { color: var(--yellow); }
+.vision  .ri-icon { color: var(--text-3); }
+
+.steps-group { margin-bottom: 2.5rem; }
+.steps-group-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.steps-group-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.priority-high { color: var(--red); }
+.priority-mid  { color: var(--yellow); }
+.priority-low  { color: var(--blue); }
+.steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.step-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.2s, transform 0.2s; }
+.step-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.step-card-title { font-weight: 600; font-size: 0.88rem; color: var(--text); margin-bottom: 0.5rem; }
+.step-card-desc  { font-size: 0.79rem; color: var(--text-2); line-height: 1.55; }
+.urgency-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.urgency-dot.high { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.urgency-dot.mid  { background: var(--yellow); }
+.urgency-dot.low  { background: var(--blue); }
+
+.north-star { background: linear-gradient(135deg, var(--primary-dim), rgba(129,140,248,0.1)); border: 1px solid var(--primary-glow); border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+.ns-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.ns-text { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700; color: var(--text); line-height: 1.4; font-style: italic; }
+.principles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.principle-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.principle-num  { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--primary); font-weight: 600; margin-bottom: 0.6rem; }
+.principle-text { font-size: 0.83rem; color: var(--text-2); line-height: 1.6; }
+.filter-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 8px; padding: 1.25rem 1.5rem; }
+.filter-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem; }
+.filter-text  { font-size: 0.88rem; color: var(--text-2); line-height: 1.6; }
+
+/* MARKMAP — fix: cresce conforme conteúdo, sem corte */
+.mindmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 2rem; }
+.mindmap-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.mindmap-title-sm { font-size: 0.78rem; color: var(--text-3); font-weight: 500; }
+.mindmap-actions { display: flex; align-items: center; gap: 0.85rem; }
+.mindmap-hint { font-size: 0.7rem; color: var(--text-3); }
+.mindmap-open { font-size: 0.72rem; color: var(--primary); text-decoration: none; padding: 0.25rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; transition: border-color 0.2s, background 0.2s; font-family: 'JetBrains Mono', monospace; }
+.mindmap-open:hover { border-color: var(--primary); background: rgba(255,255,255,0.03); }
+.mindmap-canvas {
+  background: #0a0a14;
+  min-height: 480px;
+  max-height: 80vh;
+  height: clamp(480px, 60vh, 720px);
+  overflow: auto;
+}
+.mindmap-canvas .markmap { display: block; width: 100%; height: 100%; position: relative; }
+.mindmap-canvas .markmap svg { display: block; width: 100%; height: 100%; }
+
+footer { background: var(--surface); border-top: 1px solid var(--border); padding: 3rem 2rem; }
+.footer-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer-brand { display: flex; flex-direction: column; gap: 0.4rem; }
+.footer-logo { font-weight: 800; font-size: 1.1rem; color: var(--text); }
+.footer-logo span { color: var(--primary); }
+.footer-meta { font-size: 0.75rem; color: var(--text-3); }
+.footer-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-stat { text-align: center; }
+.footer-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+.footer-stat-label { font-size: 0.68rem; color: var(--text-3); }
+.footer-sig { font-size: 0.72rem; color: var(--text-3); font-style: italic; }
+
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 2rem; }
+
+@media (max-width: 700px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  section { padding: 5rem 1.25rem 3rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2, .grid-3, .stack-grid, .roadmap-grid,
+  .principles-grid, .steps-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .mindmap-canvas { height: 70vh; }
+}
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+.fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#hero">
+    <span class="nav-logo-dot"></span>
+    ChatFlow
+  </a>
+  <ul class="nav-links">
+    <li><a href="#overview">Visão</a></li>
+    <li><a href="#flows">Fluxos</a></li>
+    <li><a href="#modules">Módulos</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#next">Próximos</a></li>
+    <li><a href="#philosophy">Filosofia</a></li>
+  </ul>
+  <span class="nav-phase">Fase 2 — Multi-canal ativo (Widget + Telegram + E-mail)</span>
+</nav>
+
+
+<section id="hero">
+  
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Fase 2 — Multi-canal ativo (Widget + Telegram + E-mail)
+  </div>
+  
+
+  <h1 class="hero-title">ChatFlow</h1>
+  <p class="hero-tagline">Plataforma de atendimento omnichannel via chat com IA, widget embed e painel de operadores em tempo real</p>
+
+  
+  <div class="stats-grid">
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">0</div>
+      <div class="stat-label">logins manuais no widget — visitante entra sem fricção</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">3</div>
+      <div class="stat-label">canais unificados numa fila só (Widget · Telegram · E-mail)</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">1 linha</div>
+      <div class="stat-label">de HTML para embeddar o chat em qualquer site</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">das conversas encerradas ganham resumo automático via IA</div>
+    </div>
+    
+  </div>
+  
+
+  
+  <div class="terminal fade-in">
+    <div class="terminal-bar">
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <span class="terminal-title">chatflow — demo</span>
+    </div>
+    <div class="terminal-body" id="termBody">
+      <span class="t-cursor" id="termCursor"></span>
+    </div>
+  </div>
+  
+</section>
+
+<div class="divider"></div>
+
+
+<section id="overview">
+  <div class="section-label">Visão Geral</div>
+  <h2 class="section-title">ChatFlow</h2>
+  <p class="section-sub">Plataforma de atendimento omnichannel via chat com IA, widget embed e painel de operadores em tempo real</p>
+
+  
+  <div class="stack-grid fade-in">
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Linguagem</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">JavaScript (ES Modules)</span>
+          
+            <span class="tag">SQL</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Frameworks</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Express 4</span>
+          
+            <span class="tag">Socket.io 4</span>
+          
+            <span class="tag">React 18</span>
+          
+            <span class="tag">Vite</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">IA</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Anthropic Claude (@anthropic-ai/sdk)</span>
+          
+            <span class="tag">OpenAI (previsto)</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Infra</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Node.js 18+</span>
+          
+            <span class="tag">Multer (upload de mídia)</span>
+          
+            <span class="tag">Brevo (e-mail transacional)</span>
+          
+            <span class="tag">Cloudflare Email Routing</span>
+          
+            <span class="tag">express-rate-limit</span>
+          
+            <span class="tag">JWT (jsonwebtoken)</span>
+          
+            <span class="tag">bcryptjs</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Banco</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">PostgreSQL 14+</span>
+          
+            <span class="tag">pg (Pool nativo)</span>
+          
+            <span class="tag">Migrations SQL idempotentes</span>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+  
+
+  
+  <div class="mindmap-wrap fade-in">
+    <div class="mindmap-header">
+      <span class="mindmap-title-sm">Mapa Mental — ChatFlow</span>
+      <span class="mindmap-actions">
+        <span class="mindmap-hint">scroll &amp; zoom para navegar</span>
+        
+        <a class="mindmap-open" href="https://brunoviskcrv.github.io/kush-pages/chatflow/mindmap.html" target="_blank" rel="noopener" title="Abrir em tela cheia (nova aba)">↗ Tela cheia</a>
+        
+      </span>
+    </div>
+    <div class="mindmap-canvas">
+      <div class="markmap">
+        <script type="text/template">
+# ChatFlow
+## Backend (Node.js + Express)
+### Rotas REST
+- /api/auth (login, register, me)
+- /api/chats (lista, mensagens, status, resumo)
+- /api/conversations (start, mute)
+- /api/email (inbound, webhook, reply, channels)
+- /api/operators (CRUD, atribuições de canal)
+- /api/quick-replies (pessoal, global, auto-save)
+- /api/reports (welcome, stats)
+- /api/business-hours (config, status)
+- /api/media/upload
+### WebSocket (Socket.io)
+- Namespace /widget
+- Namespace /dashboard
+### Serviços
+- email.service (receber + responder)
+- business-hours.service
+- IA (Claude — resumos)
+### Banco (PostgreSQL)
+- users
+- conversations
+- messages
+- ai_summaries
+- email_channels
+- telegram_channels
+- channel_operators
+- quick_replies / global_quick_replies
+- message_frequency
+- settings
+## Dashboard (React + Vite)
+- Fila de conversas em tempo real
+- Chat com operador
+- Painel de relatórios
+- Gestão de operadores
+- Configuração de canais
+- Mensagens rápidas
+- Horários de atendimento
+## Widget (React + Vite IIFE)
+- Embed via script tag
+- Mount via JS API
+- Tema configurável
+- Conexão Socket.io /widget
+## Canais
+- Widget (site embed)
+- E-mail (Cloudflare / Mailgun)
+- Telegram (GramJS)
+        </script>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+
+<div class="divider"></div>
+<section id="flows">
+  <div class="section-label">Fluxos</div>
+  <h2 class="section-title">Como funciona</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Atendimento via Widget
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Visitante abre o widget embarcado no site do cliente</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Widget conecta ao namespace /widget do Socket.io e cria conversa com status &#39;bot&#39;</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Mensagem chega ao backend e é persistida em messages + emitida ao namespace /dashboard</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Operador responsável pelo canal recebe em tempo real e responde pelo dashboard React</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">Ao encerrar, Claude gera resumo automático salvo em ai_summaries</div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Recebimento de E-mail
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">E-mail chega no canal configurado (Cloudflare Email Worker ou Mailgun webhook)</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">POST /api/email/inbound — backend normaliza remetente, assunto e corpo</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">receiveEmail() identifica canal pelo endereço &#39;to&#39;, cria ou atualiza conversa com source=&#39;email&#39;</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Evento Socket.io emitido ao dashboard — operador do canal é notificado</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">Operador responde via POST /api/email/reply — Brevo envia o e-mail ao visitante</div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Atendimento via Telegram
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Admin conecta canal Telegram (número + session GramJS) pelo painel</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Backend escuta mensagens recebidas e vincula ao telegram_channel_id na conversa</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Conversa aparece na fila do operador atribuído ao canal</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Operador responde pelo dashboard — backend encaminha via API do Telegram</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">Mídias (áudio OGG, imagens, vídeos) são salvas em public/uploads/ e repassadas</div>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="modules">
+  <div class="section-label">Módulos</div>
+  <h2 class="section-title">Componentes principais</h2>
+
+  <div class="grid-2" style="margin-top:2rem;">
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Widget Embed</div>
+      </div>
+      <div class="module-desc">Bundle IIFE gerado pelo Vite que pode ser inserido em qualquer site externo via tag &lt;script&gt; ou API JS. Conecta ao namespace /widget do Socket.io e abre uma conversa com status &#39;bot&#39;.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Embed com uma linha de HTML</div>
+        
+        <div class="feature-item">Mount programático via window.ChatFlow.mount()</div>
+        
+        <div class="feature-item">Cor primária configurável por organização</div>
+        
+        <div class="feature-item">Reconexão automática em queda de rede</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">window.ChatFlow.mount({ serverUrl: &#39;https://api.exemplo.com&#39;, organizationId: &#39;uuid&#39;, primaryColor: &#39;#4f46e5&#39; })</div>
+        <div class="mt-res">✓ widget montado — socket /widget conectado — conversa criada</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Motor de E-mail</div>
+      </div>
+      <div class="module-desc">Recebe e-mails inbound via Cloudflare Email Worker (JSON) ou Mailgun webhook (multipart), cria/atualiza conversas com source=&#39;email&#39; e envia respostas transacionais via Brevo.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Suporte a Cloudflare Email Routing e Mailgun</div>
+        
+        <div class="feature-item">Parsing de remetente, assunto e corpo limpo</div>
+        
+        <div class="feature-item">Threading por email_message_id</div>
+        
+        <div class="feature-item">Repasse de anexos base64 para disco</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">POST /api/email/inbound  { from, to, subject, body }</div>
+        <div class="mt-res">✓ conversa email criada (id: uuid) — operador notificado via socket</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Integração Telegram</div>
+      </div>
+      <div class="module-desc">Conecta canais Telegram via GramJS (MTProto nativo). Cada canal tem número de telefone e session string próprios. Mensagens e mídias (áudio OGG, imagens) são unificadas na mesma fila do dashboard.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Múltiplos canais Telegram por instalação</div>
+        
+        <div class="feature-item">Envio e recebimento de voz (OGG/Opus)</div>
+        
+        <div class="feature-item">Reconexão automática de sessão</div>
+        
+        <div class="feature-item">Status do canal: disconnected / connecting / connected / 2fa_needed</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">npm run db:migrate:telegram &amp;&amp; node src/config/create-operators.js</div>
+        <div class="mt-res">✓ telegram_channels criada — operadores vinculados ao canal</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Resumos IA (Claude)</div>
+      </div>
+      <div class="module-desc">Ao encerrar uma conversa, o backend chama a API do Anthropic Claude para gerar um resumo estruturado do atendimento, persistido em ai_summaries e exibido no dashboard.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Resumo automático no fechamento da conversa</div>
+        
+        <div class="feature-item">Histórico de resumos por conversa</div>
+        
+        <div class="feature-item">Acessível via GET /api/chats/:id/summary</div>
+        
+        <div class="feature-item">Zero configuração extra — usa ANTHROPIC_API_KEY do .env</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">PATCH /api/chats/conv-uuid/status  { status: &#39;closed&#39; }</div>
+        <div class="mt-res">✓ Claude gerou resumo — salvo em ai_summaries — conversa arquivada</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Quick Replies com Auto-save</div>
+      </div>
+      <div class="module-desc">Sistema de mensagens rápidas pessoais e globais. O endpoint /track monitora frequência de envio e salva automaticamente mensagens enviadas 3+ vezes como quick reply, sem intervenção do operador.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Mensagens pessoais e globais (admin) separadas</div>
+        
+        <div class="feature-item">Ordenação por use_count decrescente</div>
+        
+        <div class="feature-item">Auto-save silencioso após 3 envios da mesma mensagem</div>
+        
+        <div class="feature-item">Deduplicação por conteúdo com ON CONFLICT</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">POST /api/quick-replies/track  { content: &#39;Olá! Como posso ajudar?&#39; }</div>
+        <div class="mt-res">✓ count=3 atingido — salvo em quick_replies automaticamente</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Gestão de Operadores e Canais</div>
+      </div>
+      <div class="module-desc">CRUD completo de operadores com controle de roles (admin/operator), atribuição de operadores a canais específicos (widget, email, telegram) e bloqueio de auto-desativação.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Criação, edição e ativação/desativação de operadores</div>
+        
+        <div class="feature-item">Atribuição de operador primário por canal</div>
+        
+        <div class="feature-item">Filtro de conversas por canal atribuído ao operador logado</div>
+        
+        <div class="feature-item">Modo emergência: operador vê todas as conversas independente de canal</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">POST /api/operators/channels  { operator_id, channel_id, channel_type: &#39;telegram&#39;, is_primary: true }</div>
+        <div class="mt-res">✓ channel_operators inserido — operador verá conversas do canal Telegram</div>
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="roadmap">
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">Evolução por fases</h2>
+
+  <div class="roadmap-grid" style="margin-top:2rem;">
+    
+    
+    
+    <div class="roadmap-card done fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 01</span>
+        <span class="status-badge done">✓ Concluído</span>
+      </div>
+      <div class="roadmap-title">MVP — Atendimento via Widget</div>
+      <div class="roadmap-sub">Chat em tempo real com Socket.io e painel de operadores</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Widget IIFE embedável em qualquer site</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Namespace /widget e /dashboard com Socket.io</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Autenticação JWT com rate limit no login</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>CRUD de conversas e mensagens no PostgreSQL</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Resumos automáticos de conversa via Claude</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Migrations idempotentes e seed de admin</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card current fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 02</span>
+        <span class="status-badge current">● Em andamento</span>
+      </div>
+      <div class="roadmap-title">Multi-canal — E-mail e Telegram</div>
+      <div class="roadmap-sub">Unificação de canais externos numa fila só</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Inbound de e-mail via Cloudflare Email Worker + Mailgun webhook</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Respostas de e-mail via Brevo (transacional)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Integração Telegram via GramJS (MTProto)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Upload de mídia (imagem, vídeo, áudio OGG) em public/uploads</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>channel_operators — atribuição de operadores por canal</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Rota /api/reports/welcome com métricas por canal</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Mute de conversa + quick replies com auto-save em 3 usos</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card planned fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 03</span>
+        <span class="status-badge planned">○ Planejado</span>
+      </div>
+      <div class="roadmap-title">Automação e Inteligência</div>
+      <div class="roadmap-sub">LLM respondendo automaticamente antes do operador</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Bot LLM (Claude / OpenAI) para respostas automáticas na fila</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Transferência de conversa entre operadores</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Notificações push e e-mail para novos atendimentos</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Autenticação OAuth (Google) para operadores</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Docker Compose para subir todo o ambiente com um comando</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Relatórios detalhados com filtro de período (admin)</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card vision fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 04</span>
+        <span class="status-badge vision">◇ Visão</span>
+      </div>
+      <div class="roadmap-title">Plataforma SaaS</div>
+      <div class="roadmap-sub">Multi-tenant com organizações independentes</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Isolamento por organização (multi-tenant real)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Planos e billing integrados</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>API pública para integrações de terceiros</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Marketplace de canais (WhatsApp Business, Instagram DM)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Analytics avançados com BI embutido</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>SLA e escalação automática por prioridade</div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="next">
+  <div class="section-label">Próximos Passos</div>
+  <h2 class="section-title">Priorizado por urgência</h2>
+
+  <div style="margin-top:2.5rem;">
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot high"></div>
+          <span class="steps-group-label priority-high">Alta Prioridade</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Bot LLM na fila</div>
+            <div class="step-card-desc">Antes de acionar operador humano, Claude responde automaticamente usando contexto da conversa — reduz carga de atendimento em conversas simples.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Docker Compose</div>
+            <div class="step-card-desc">Arquivo único para subir backend + dashboard + widget + PostgreSQL com um único &#39;docker compose up&#39; — elimina setup manual de banco.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Notificações push</div>
+            <div class="step-card-desc">Alertas de nova conversa por e-mail ou push browser para operadores offline — evita conversas sem resposta acumulando na fila.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot mid"></div>
+          <span class="steps-group-label priority-mid">Próximas Entregas</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Transferência de conversa</div>
+            <div class="step-card-desc">Operador pode reassinar uma conversa em curso para outro colega sem perder o histórico — fundamental para times com especialidades distintas.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">OAuth Google</div>
+            <div class="step-card-desc">Login de operadores via conta Google — elimina gestão de senha e facilita onboarding de novos atendentes.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Relatórios com filtro de período</div>
+            <div class="step-card-desc">A rota /api/reports/stats já tem o scaffold; falta concluir o cálculo de intervalo customizado e conectar ao frontend.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot low"></div>
+          <span class="steps-group-label priority-low">Fundação Técnica</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Testes automatizados</div>
+            <div class="step-card-desc">O projeto não tem suíte de testes. Adicionar Vitest para unitários e Supertest para rotas REST garante segurança nas evoluções futuras.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Isolamento multi-tenant real</div>
+            <div class="step-card-desc">Hoje organizations existe apenas no schema legado. Separar dados por organização com Row-Level Security no PostgreSQL é pré-requisito para SaaS.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">CI/CD pipeline</div>
+            <div class="step-card-desc">GitHub Actions rodando lint + testes + build automático a cada push — pré-requisito para deploys confiáveis em produção.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="philosophy">
+  <div class="section-label">Filosofia</div>
+  <h2 class="section-title">O que guia cada decisão</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="north-star">
+      <div class="ns-icon">⭐</div>
+      <div class="ns-text">"Qualquer canal onde o cliente já está — uma fila única onde o operador já trabalha"</div>
+    </div>
+    
+
+    
+    <div class="principles-grid">
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 01</div>
+        <div class="principle-text">Zero fricção para o visitante: abrir o widget ou enviar um e-mail já é suficiente para iniciar um atendimento</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 02</div>
+        <div class="principle-text">Operadores veem apenas o que é relevante para eles — filtro por canal elimina ruído sem esconder emergências</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 03</div>
+        <div class="principle-text">IA como copiloto, nunca como barreira — Claude enriquece (resumos, automação futura) sem substituir o julgamento humano</div>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="filter-box">
+      <div class="filter-label">Filtro de feature</div>
+      <div class="filter-text">A feature entra se reduz tempo de resposta ao visitante OU reduz esforço cognitivo do operador — funcionalidades puramente administrativas ficam para depois</div>
+    </div>
+    
+  </div>
+</section>
+
+
+<div class="divider"></div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">ChatFlow</div>
+      <div class="footer-meta">Fase 2 — Multi-canal ativo (Widget + Telegram + E-mail)</div>
+    </div>
+
+    
+    <div class="footer-stats">
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">0</div>
+        <div class="footer-stat-label">logins manuais no wi</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">3</div>
+        <div class="footer-stat-label">canais unificados nu</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">1 linha</div>
+        <div class="footer-stat-label">de HTML para embedda</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">100%</div>
+        <div class="footer-stat-label">das conversas encerr</div>
+      </div>
+      
+    </div>
+    
+
+    <div class="footer-sig">Gerado por Kush-Dev</div>
+  </div>
+</footer>
+
+<script>
+
+const termLines = [{"cls": "", "msg": "PATCH /api/chats/conv-uuid/status  { status: \u0027closed\u0027 }", "who": "voce"}, {"cls": "gen", "msg": "\u25b6 gerando resumo autom\u00e1tico da conversa via Claude\u2026", "who": "bot"}, {"cls": "ok", "msg": "\u2713 ai_summaries inserido \u2014 conversa encerrada e arquivada", "who": "bot"}, {"cls": "", "msg": "GET /api/reports/welcome", "who": "voce"}, {"cls": "gen", "msg": "\u25b6 calculando m\u00e9tricas do operador + fila por canal\u2026", "who": "bot"}, {"cls": "ok", "msg": "\u2713 { conversations_today: 14, waiting_now: 3, avg_minutes: 8 }", "who": "bot"}, {"cls": "", "msg": "window.ChatFlow.mount({ organizationId: \u0027uuid\u0027, primaryColor: \u0027#4f46e5\u0027 })", "who": "voce"}, {"cls": "gen", "msg": "\u25b6 conectando ao namespace /widget via Socket.io\u2026", "who": "bot"}, {"cls": "ok", "msg": "\u2713 widget renderizado \u2014 visitante em fila de atendimento", "who": "bot"}];
+const body = document.getElementById('termBody');
+const cursor = document.getElementById('termCursor');
+let lineIdx = 0;
+function addLine(line) {
+  const el = document.createElement('div');
+  el.className = 't-line';
+  const whoLabel = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? '❯' : '←';
+  const whoCls   = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? 'you' : 'bot';
+  el.innerHTML = `<span class="t-who ${whoCls}">${whoLabel}</span><span class="t-msg ${line.cls || ''}">${line.msg}</span>`;
+  body.insertBefore(el, cursor);
+  requestAnimationFrame(() => el.classList.add('visible'));
+}
+function runTerminal() {
+  if (lineIdx >= termLines.length) {
+    lineIdx = 0;
+    setTimeout(() => { body.querySelectorAll('.t-line').forEach(l => l.remove()); runTerminal(); }, 4000);
+    return;
+  }
+  addLine(termLines[lineIdx]);
+  lineIdx++;
+  const prev = termLines[lineIdx - 1];
+  const isUser = prev && (prev.who === 'você' || prev.who === 'voce' || prev.who === 'usuario');
+  setTimeout(runTerminal, isUser ? 700 : 350);
+}
+setTimeout(runTerminal, 800);
+
+
+const fadeEls = document.querySelectorAll('.fade-in');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+fadeEls.forEach(el => io.observe(el));
+
+function refitMarkmaps(){
+  document.querySelectorAll('.markmap svg').forEach(svg => {
+    svg.style.background = '#0a0a14';
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+window.addEventListener('load', () => {
+  setTimeout(refitMarkmaps, 600);
+  setTimeout(refitMarkmaps, 1800);
+});
+</script>
+
+</body>
+</html>
