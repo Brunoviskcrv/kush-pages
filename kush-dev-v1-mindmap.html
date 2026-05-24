@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Mapa Mental — Kush-Dev">
+<title>Mapa Mental — Kush-Dev</title>
+<style>
+  :root {
+    --primary: #F97316;
+    --bg: #0a0a14;
+    --surface: #131321;
+    --border: #1f1f33;
+    --text: #f1f5f9;
+    --text-2: #94a3b8;
+    --text-3: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .brand { display: flex; flex-direction: column; gap: 0.2rem; }
+  .title { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .title .dot { color: var(--primary); }
+  .tagline { font-size: 0.78rem; color: var(--text-3); }
+  .hint { font-size: 0.7rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+  main {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #mindmap { display: block; background: var(--bg); }
+  footer {
+    padding: 0.6rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.68rem;
+    color: var(--text-3);
+    text-align: center;
+  }
+  footer .sig { color: var(--text-2); }
+  @media (max-width: 640px) {
+    header { padding: 0.75rem 1rem; }
+    .title { font-size: 0.85rem; }
+    .tagline { font-size: 0.68rem; }
+    .hint { display: none; }
+  }
+</style>
+<!-- Carrega markmap mas SEM autoloader rodar; usaremos API direta -->
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="title"><span class="dot">⬡</span> Mapa Mental — Kush-Dev</div>
+      <div class="tagline">Descreva uma ideia — o bot gera, testa, corrige e publica o projeto no GitHub</div>
+    </div>
+    <div class="hint">scroll &amp; zoom para navegar</div>
+  </header>
+  <main id="mindmap-wrap">
+    <svg id="mindmap"></svg>
+  </main>
+  <footer>
+    <span class="sig">Bruno de Carvalho — Kush-Dev</span> · gerado por kush-dev
+  </footer>
+<script>
+const MARKMAP_MD = "# Kush-Dev\n\n## Bot Telegram\n### Comandos principais\n- `/criar` \u2014 ideia \u2192 repo GitHub\n- `/melhorar` \u2014 repo \u2192 PR com melhoria\n- `/apresentar` \u2014 repo \u2192 HTML profissional\n- `/proximo` \u2014 executa pr\u00f3xima pend\u00eancia\n- `/testar` \u2014 bateria interna sem side-effects\n### Fluxo /criar\n- Research Agent (leve)\n- Briefing Agent (perguntas + spec)\n- Developer Agent (heavy \u2192 JSON)\n- Sandbox (execu\u00e7\u00e3o + autocorre\u00e7\u00e3o 3\u00d7)\n- Teste de Coer\u00eancia\n- GitHub Publisher\n### Fluxo /melhorar\n- Recon Agent (lockfiles)\n- Protected Paths\n- Self-Detection (modo paranoico)\n- Improver Agent (cir\u00fargico)\n- PR Publisher\n\n## IA Multi-Provider\n### Heavy (c\u00f3digo)\n- Claude Sonnet (default)\n- GPT-4o, DeepSeek, Mistral, Grok\n### Light (pesquisa, perguntas, resumos)\n- Groq / Llama 3.3 70B (preferido)\n- Together, Ollama, Gemini, Claude Haiku\n### Roteamento\n- router.py: `light()` e `heavy()`\n- Fallback autom\u00e1tico em runtime\n- `/modelo` troca provider\n\n## Infraestrutura\n### Deploy\n- Railway PaaS\n- Procfile + Nixpacks\n- Deploy autom\u00e1tico no push\n### Banco\n- PostgreSQL / asyncpg\n- Tasks, Projects, UserPreferences\n### Sandbox\n- /tmp isolado\n- Timeout 30s\n- Python + Node.js\n\n## Seguran\u00e7a (SAFETY)\n### Sprint 1 (\u2705 implementado)\n- Protected Paths (.kush-dev/protected.txt)\n- Self-Detection (modo paranoico)\n- Fase Zero (leitura de lockfiles)\n### Sprint 2-3 (pendente)\n- Security scan\n- pip audit\n- Pre-deploy checks\n\n## Filosofia\n- NORTH_STAR: evoluir, n\u00e3o entregar\n- 1% ao dia \u00e9 o m\u00ednimo\n- Clarificar antes de construir\n- Autonomia com transpar\u00eancia\n- BRISAS.md: ideias em macera\u00e7\u00e3o";
+let mmInstance = null;
+
+function getDimensions() {
+  const isMobile = window.innerWidth <= 640;
+  const headerH = isMobile ? 56 : 64;
+  const footerH = isMobile ? 28 : 32;
+  const w = window.innerWidth;
+  const h = Math.max(380, window.innerHeight - headerH - footerH);
+  return { w, h };
+}
+
+function sizeSvg() {
+  const { w, h } = getDimensions();
+  const main = document.getElementById('mindmap-wrap');
+  const svg = document.getElementById('mindmap');
+  main.style.height = h + 'px';
+  // SVG precisa de atributos width/height (não só style) para
+  // getBoundingClientRect retornar valores corretos — d3/markmap depende disso.
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  svg.style.width = w + 'px';
+  svg.style.height = h + 'px';
+}
+
+function renderMindmap() {
+  if (!window.markmap || !window.markmap.Markmap) {
+    setTimeout(renderMindmap, 100);
+    return;
+  }
+  const { Markmap, Transformer } = window.markmap;
+  const transformer = new Transformer();
+  const { root } = transformer.transform(MARKMAP_MD);
+  const svg = document.getElementById('mindmap');
+  if (mmInstance) {
+    try { mmInstance.destroy(); } catch (e) {}
+    svg.innerHTML = '';
+  }
+  sizeSvg();
+  mmInstance = Markmap.create(svg, null, root);
+  // fit já é chamado por create, mas garantimos um segundo fit após reflow
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      try { mmInstance.fit(); } catch (e) {}
+    });
+  });
+}
+
+// Inicializa dimensões IMEDIATAMENTE (antes mesmo do load)
+sizeSvg();
+// Render quando DOM + markmap estão prontos
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderMindmap);
+} else {
+  renderMindmap();
+}
+
+// Mobile: orientationchange → recria com dimensões novas
+window.addEventListener('orientationchange', () => {
+  setTimeout(renderMindmap, 300);
+});
+// Desktop: resize debounced refit
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    sizeSvg();
+    try { mmInstance?.fit(); } catch (e) {}
+  }, 200);
+});
+</script>
+</body>
+</html>
