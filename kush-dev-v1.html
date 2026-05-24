@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kush-Dev — Descreva uma ideia — o bot gera, testa, corrige e publica o projeto no GitHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+<style>
+:root {
+  --bg: #07070F;
+  --surface: #0F0F1A;
+  --card: #131321;
+  --border: #1E1E32;
+  --primary: #F97316;
+  --primary-dim: #F9731626;   /* ~15% opacity */
+  --primary-glow: #F9731659;  /* ~35% opacity */
+  --text: #F1F5F9;
+  --text-2: #94A3B8;
+  --text-3: #475569;
+  --green: #22C55E;
+  --yellow: #F59E0B;
+  --red: #EF4444;
+  --blue: #3B82F6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', sans-serif; line-height: 1.6;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(7,7,15,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; }
+.nav-logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+.nav-links { display: flex; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-2); text-decoration: none; font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--primary); }
+.nav-phase {
+  font-size: 0.72rem; padding: 0.25rem 0.75rem; border-radius: 20px;
+  background: var(--primary-dim); color: var(--primary);
+  border: 1px solid var(--primary-glow); font-weight: 600;
+}
+
+section { padding: 7rem 2rem 4rem; max-width: 900px; margin: 0 auto; }
+.section-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem; }
+.section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; color: var(--text); }
+.section-sub { font-size: 1rem; color: var(--text-2); max-width: 620px; line-height: 1.7; }
+
+#hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; padding-top: 80px;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content: ''; position: absolute; top: -200px; left: 50%;
+  transform: translateX(-50%); width: 800px; height: 800px;
+  background: radial-gradient(circle, #F973161f 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.9rem; border-radius: 20px;
+  background: var(--primary-dim); border: 1px solid var(--primary-glow);
+  font-size: 0.75rem; font-weight: 600; color: var(--primary);
+  margin-bottom: 1.5rem; width: fit-content;
+}
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+.hero-title { font-size: clamp(2.8rem, 8vw, 5rem); font-weight: 900; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
+.hero-title span { background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-tagline { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1rem; transition: border-color 0.2s, transform 0.2s; }
+.stat-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.stat-num { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 0.73rem; color: var(--text-2); line-height: 1.4; }
+
+.terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.terminal-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: var(--card); border-bottom: 1px solid var(--border); }
+.terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+.terminal-dot:nth-child(1) { background: #EF4444; }
+.terminal-dot:nth-child(2) { background: #F59E0B; }
+.terminal-dot:nth-child(3) { background: #22C55E; }
+.terminal-title { margin-left: 0.5rem; font-size: 0.72rem; color: var(--text-3); }
+.terminal-body { padding: 1.25rem; min-height: 220px; display: flex; flex-direction: column; gap: 0.4rem; }
+.t-line { display: flex; gap: 0.6rem; opacity: 0; transform: translateX(-4px); transition: opacity 0.3s, transform 0.3s; line-height: 1.6; }
+.t-line.visible { opacity: 1; transform: none; }
+.t-who { flex-shrink: 0; font-size: 0.7rem; font-weight: 600; }
+.t-who.you { color: var(--primary); }
+.t-who.bot { color: var(--text-3); }
+.t-msg { color: var(--text-2); }
+.t-msg.gen { color: #818CF8; }
+.t-msg.ok { color: var(--green); }
+.t-cursor { display: inline-block; width: 8px; height: 1em; background: var(--primary); animation: blink 1s step-end infinite; vertical-align: middle; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.card:hover { border-color: var(--primary-glow); transform: translateY(-3px); box-shadow: 0 8px 30px var(--primary-dim); }
+
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+.stack-group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.stack-group-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tag { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+.tag.primary { background: var(--primary-dim); border-color: var(--primary-glow); color: var(--primary); }
+
+.flow-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; transition: border-color 0.2s; }
+.flow-card:hover { border-color: var(--primary-glow); }
+.flow-title { font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
+.flow-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--primary-dim); border: 1px solid var(--primary-glow); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.flow-steps { display: flex; flex-direction: column; gap: 0; }
+.flow-step { display: flex; gap: 1rem; align-items: flex-start; }
+.step-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-dim); border: 1px solid var(--primary-glow); color: var(--primary); font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.step-connector { width: 1px; flex: 1; min-height: 20px; background: var(--border); margin: 3px 0; }
+.step-text { font-size: 0.84rem; color: var(--text-2); padding-bottom: 1rem; line-height: 1.55; }
+
+.module-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; transition: border-color 0.2s, transform 0.2s; }
+.module-card:hover { border-color: var(--primary-glow); transform: translateY(-3px); }
+.module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.module-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.module-badge { font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 6px; background: var(--primary-dim); color: var(--primary); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.module-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.6; }
+.module-features { display: flex; flex-direction: column; gap: 0.4rem; }
+.feature-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: var(--text-2); }
+.feature-item::before { content: '▸'; color: var(--primary); flex-shrink: 0; margin-top: 0.05rem; }
+.module-terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.875rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; }
+.mt-cmd { color: var(--text-3); margin-bottom: 0.3rem; }
+.mt-cmd::before { content: '$ '; color: var(--primary); }
+.mt-res { color: var(--green); }
+
+.roadmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.roadmap-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; position: relative; overflow: hidden; transition: border-color 0.2s; }
+.roadmap-card.done    { border-top: 3px solid var(--green); }
+.roadmap-card.current { border-top: 3px solid var(--primary); box-shadow: 0 0 30px var(--primary-dim); }
+.roadmap-card.planned { border-top: 3px solid var(--yellow); }
+.roadmap-card.vision  { border-top: 3px solid var(--text-3); }
+.roadmap-card:hover { border-color: var(--primary-glow); }
+.roadmap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.roadmap-phase { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: var(--text-3); font-weight: 600; }
+.status-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 6px; }
+.status-badge.done    { background: rgba(34,197,94,0.15); color: var(--green); }
+.status-badge.current { background: var(--primary-dim); color: var(--primary); }
+.status-badge.planned { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.status-badge.vision  { background: rgba(71,85,105,0.3); color: var(--text-3); }
+.roadmap-title { font-weight: 700; font-size: 0.98rem; color: var(--text); margin-bottom: 0.2rem; }
+.roadmap-sub   { font-size: 0.78rem; color: var(--text-3); margin-bottom: 1rem; }
+.roadmap-items { display: flex; flex-direction: column; gap: 0.45rem; }
+.roadmap-item  { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.79rem; color: var(--text-2); line-height: 1.45; }
+.ri-icon { flex-shrink: 0; margin-top: 0.1rem; font-size: 0.7rem; }
+.done    .ri-icon { color: var(--green); }
+.current .ri-icon { color: var(--primary); }
+.planned .ri-icon { color: var(--yellow); }
+.vision  .ri-icon { color: var(--text-3); }
+
+.steps-group { margin-bottom: 2.5rem; }
+.steps-group-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.steps-group-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.priority-high { color: var(--red); }
+.priority-mid  { color: var(--yellow); }
+.priority-low  { color: var(--blue); }
+.steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.step-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.2s, transform 0.2s; }
+.step-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.step-card-title { font-weight: 600; font-size: 0.88rem; color: var(--text); margin-bottom: 0.5rem; }
+.step-card-desc  { font-size: 0.79rem; color: var(--text-2); line-height: 1.55; }
+.urgency-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.urgency-dot.high { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.urgency-dot.mid  { background: var(--yellow); }
+.urgency-dot.low  { background: var(--blue); }
+
+.north-star { background: linear-gradient(135deg, var(--primary-dim), rgba(129,140,248,0.1)); border: 1px solid var(--primary-glow); border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+.ns-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.ns-text { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700; color: var(--text); line-height: 1.4; font-style: italic; }
+.principles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.principle-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.principle-num  { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--primary); font-weight: 600; margin-bottom: 0.6rem; }
+.principle-text { font-size: 0.83rem; color: var(--text-2); line-height: 1.6; }
+.filter-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 8px; padding: 1.25rem 1.5rem; }
+.filter-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem; }
+.filter-text  { font-size: 0.88rem; color: var(--text-2); line-height: 1.6; }
+
+/* MARKMAP — fix: cresce conforme conteúdo, sem corte */
+.mindmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 2rem; }
+.mindmap-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.mindmap-title-sm { font-size: 0.78rem; color: var(--text-3); font-weight: 500; }
+.mindmap-actions { display: flex; align-items: center; gap: 0.85rem; }
+.mindmap-hint { font-size: 0.7rem; color: var(--text-3); }
+.mindmap-open { font-size: 0.72rem; color: var(--primary); text-decoration: none; padding: 0.25rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; transition: border-color 0.2s, background 0.2s; font-family: 'JetBrains Mono', monospace; }
+.mindmap-open:hover { border-color: var(--primary); background: rgba(255,255,255,0.03); }
+.mindmap-canvas {
+  background: #0a0a14;
+  min-height: 480px;
+  max-height: 80vh;
+  height: clamp(480px, 60vh, 720px);
+  overflow: auto;
+}
+.mindmap-canvas .markmap { display: block; width: 100%; height: 100%; position: relative; }
+.mindmap-canvas .markmap svg { display: block; width: 100%; height: 100%; }
+
+footer { background: var(--surface); border-top: 1px solid var(--border); padding: 3rem 2rem; }
+.footer-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer-brand { display: flex; flex-direction: column; gap: 0.4rem; }
+.footer-logo { font-weight: 800; font-size: 1.1rem; color: var(--text); }
+.footer-logo span { color: var(--primary); }
+.footer-meta { font-size: 0.75rem; color: var(--text-3); }
+.footer-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-stat { text-align: center; }
+.footer-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+.footer-stat-label { font-size: 0.68rem; color: var(--text-3); }
+.footer-sig { font-size: 0.72rem; color: var(--text-3); font-style: italic; }
+
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 2rem; }
+
+@media (max-width: 700px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  section { padding: 5rem 1.25rem 3rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2, .grid-3, .stack-grid, .roadmap-grid,
+  .principles-grid, .steps-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .mindmap-canvas { height: 70vh; }
+}
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+.fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#hero">
+    <span class="nav-logo-dot"></span>
+    Kush-Dev
+  </a>
+  <ul class="nav-links">
+    <li><a href="#overview">Visão</a></li>
+    <li><a href="#flows">Fluxos</a></li>
+    <li><a href="#modules">Módulos</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#next">Próximos</a></li>
+    <li><a href="#philosophy">Filosofia</a></li>
+  </ul>
+  <span class="nav-phase">Fase 2.5 — Estabilização Estruturada</span>
+</nav>
+
+
+<section id="hero">
+  
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Fase 2.5 — Estabilização Estruturada
+  </div>
+  
+
+  <h1 class="hero-title">Kush-Dev</h1>
+  <p class="hero-tagline">Descreva uma ideia — o bot gera, testa, corrige e publica o projeto no GitHub</p>
+
+  
+  <div class="stats-grid">
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">0</div>
+      <div class="stat-label">linhas de código escritas manualmente pelo usuário</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">3×</div>
+      <div class="stat-label">auto-correções antes de desistir</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">9</div>
+      <div class="stat-label">provedores de IA roteados automaticamente</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">projetos entregues como repositório GitHub público</div>
+    </div>
+    
+  </div>
+  
+
+  
+  <div class="terminal fade-in">
+    <div class="terminal-bar">
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <span class="terminal-title">kush-dev — demo</span>
+    </div>
+    <div class="terminal-body" id="termBody">
+      <span class="t-cursor" id="termCursor"></span>
+    </div>
+  </div>
+  
+</section>
+
+<div class="divider"></div>
+
+
+<section id="overview">
+  <div class="section-label">Visão Geral</div>
+  <h2 class="section-title">Kush-Dev</h2>
+  <p class="section-sub">Descreva uma ideia — o bot gera, testa, corrige e publica o projeto no GitHub</p>
+
+  
+  <div class="stack-grid fade-in">
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Linguagem</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Python 3.11</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Frameworks</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">python-telegram-bot 21.6</span>
+          
+            <span class="tag">FastAPI (webhook stub)</span>
+          
+            <span class="tag">PyGithub</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">IA</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Claude Sonnet (Anthropic)</span>
+          
+            <span class="tag">GPT-4o (OpenAI)</span>
+          
+            <span class="tag">Gemini 2.0 Flash</span>
+          
+            <span class="tag">Groq / Llama 3.3 70B</span>
+          
+            <span class="tag">DeepSeek</span>
+          
+            <span class="tag">Mistral</span>
+          
+            <span class="tag">Grok / xAI</span>
+          
+            <span class="tag">Together AI</span>
+          
+            <span class="tag">Ollama (local)</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Infra</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Railway PaaS</span>
+          
+            <span class="tag">Procfile + Nixpacks</span>
+          
+            <span class="tag">asyncio sandbox com timeout</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Banco</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">PostgreSQL via asyncpg</span>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+  
+
+  
+  <div class="mindmap-wrap fade-in">
+    <div class="mindmap-header">
+      <span class="mindmap-title-sm">Mapa Mental — Kush-Dev</span>
+      <span class="mindmap-actions">
+        <span class="mindmap-hint">scroll &amp; zoom para navegar</span>
+        
+        <a class="mindmap-open" href="https://brunoviskcrv.github.io/kush-pages/kush-dev-mindmap.html" target="_blank" rel="noopener" title="Abrir em tela cheia (nova aba)">↗ Tela cheia</a>
+        
+      </span>
+    </div>
+    <div class="mindmap-canvas">
+      <div class="markmap">
+        <script type="text/template">
+# Kush-Dev
+
+## Bot Telegram
+### Comandos principais
+- `/criar` — ideia → repo GitHub
+- `/melhorar` — repo → PR com melhoria
+- `/apresentar` — repo → HTML profissional
+- `/proximo` — executa próxima pendência
+- `/testar` — bateria interna sem side-effects
+### Fluxo /criar
+- Research Agent (leve)
+- Briefing Agent (perguntas + spec)
+- Developer Agent (heavy → JSON)
+- Sandbox (execução + autocorreção 3×)
+- Teste de Coerência
+- GitHub Publisher
+### Fluxo /melhorar
+- Recon Agent (lockfiles)
+- Protected Paths
+- Self-Detection (modo paranoico)
+- Improver Agent (cirúrgico)
+- PR Publisher
+
+## IA Multi-Provider
+### Heavy (código)
+- Claude Sonnet (default)
+- GPT-4o, DeepSeek, Mistral, Grok
+### Light (pesquisa, perguntas, resumos)
+- Groq / Llama 3.3 70B (preferido)
+- Together, Ollama, Gemini, Claude Haiku
+### Roteamento
+- router.py: `light()` e `heavy()`
+- Fallback automático em runtime
+- `/modelo` troca provider
+
+## Infraestrutura
+### Deploy
+- Railway PaaS
+- Procfile + Nixpacks
+- Deploy automático no push
+### Banco
+- PostgreSQL / asyncpg
+- Tasks, Projects, UserPreferences
+### Sandbox
+- /tmp isolado
+- Timeout 30s
+- Python + Node.js
+
+## Segurança (SAFETY)
+### Sprint 1 (✅ implementado)
+- Protected Paths (.kush-dev/protected.txt)
+- Self-Detection (modo paranoico)
+- Fase Zero (leitura de lockfiles)
+### Sprint 2-3 (pendente)
+- Security scan
+- pip audit
+- Pre-deploy checks
+
+## Filosofia
+- NORTH_STAR: evoluir, não entregar
+- 1% ao dia é o mínimo
+- Clarificar antes de construir
+- Autonomia com transparência
+- BRISAS.md: ideias em maceração
+        </script>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+
+<div class="divider"></div>
+<section id="flows">
+  <div class="section-label">Fluxos</div>
+  <h2 class="section-title">Como funciona</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Fluxo /criar — Do texto ao repositório
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Usuário descreve a ideia (comando ou texto livre)</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Research Agent analisa libs, arquitetura e armadilhas comuns (provider leve)</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Briefing Agent faz perguntas informadas → usuário responde → /aprovar sintetiza spec técnica</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Claude (heavy) gera JSON completo com todos os arquivos do projeto</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">Sandbox executa o código em /tmp isolado · auto-correção até 3× se falhar · Teste de Coerência valida features</div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Fluxo /melhorar — Edição cirúrgica via PR
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Usuário aponta repo GitHub + descreve a melhoria</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Bot lê até 30 arquivos · Recon Agent extrai lockfiles e injeta constraints duras</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Self-detection: se repo = Kush-Dev → modo paranoico (diff manual antes do PR)</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Arquiteto planeja mudanças arquivo por arquivo · Protected Paths bloqueia arquivos críticos</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">Edição cirúrgica preserva intocados · Sandbox valida · PR aberto com resumo · URL enviada ao usuário</div>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="modules">
+  <div class="section-label">Módulos</div>
+  <h2 class="section-title">Componentes principais</h2>
+
+  <div class="grid-2" style="margin-top:2rem;">
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Developer Agent</div>
+      </div>
+      <div class="module-desc">Núcleo de geração: recebe spec técnica do Briefing Agent e produz JSON completo com todos os arquivos do projeto. Usa provider heavy (Claude por padrão). Inclui loop de autocorreção e Teste de Coerência.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Gera JSON estruturado: project_name, main_file, lang, files</div>
+        
+        <div class="feature-item">Loop fix_project() até 3 tentativas com erro do sandbox como contexto</div>
+        
+        <div class="feature-item">test_coherence() valida semanticamente se código implementa o briefing</div>
+        
+        <div class="feature-item">Suporte a Python, Node.js, HTML, APIs REST, bots</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">/criar api REST de gerenciamento de tarefas com autenticação JWT</div>
+        <div class="mt-res">✅ 8 arquivos gerados · Sandbox OK · github.com/user/tasks-api-jwt</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Improver Agent + Recon Agent</div>
+      </div>
+      <div class="module-desc">Pipeline de melhoria cirúrgica: lê o repo alvo, extrai lockfiles e constraints, planeja mudanças arquivo por arquivo, edita preservando o resto, testa e abre PR.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Lê até 30 arquivos via GitHub API</div>
+        
+        <div class="feature-item">Recon Agent extrai versões pinadas de requirements.txt, package.json, go.mod</div>
+        
+        <div class="feature-item">Injeta constraints duras no prompt (sem desvio de versão)</div>
+        
+        <div class="feature-item">Edição cirúrgica: só toca nos arquivos que precisam mudar</div>
+        
+        <div class="feature-item">Protected Paths bloqueia arquivos críticos definidos em .kush-dev/protected.txt</div>
+        
+        <div class="feature-item">Self-detection ativa modo paranoico quando alvo é o próprio Kush-Dev</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">/melhorar https://github.com/user/meu-bot adicionar rate limiting</div>
+        <div class="mt-res">🔍 Lendo 12 arquivos · 📋 Plano: editar handlers.py, config.py · ✅ PR aberto → github.com/user/meu-bot/pull/7</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">AI Router (9 Providers)</div>
+      </div>
+      <div class="module-desc">Camada de roteamento inteligente que separa tarefas leves (pesquisa, perguntas, resumos) de pesadas (geração de código). Fallback automático em runtime com health check no startup.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">light(): Groq → Together → Ollama → Gemini → DeepSeek → GPT-4 → Claude Haiku</div>
+        
+        <div class="feature-item">heavy(): usa DEFAULT_AI_PROVIDER (Claude Sonnet por padrão)</div>
+        
+        <div class="feature-item">Fallback automático se provider responde 429 ou timeout</div>
+        
+        <div class="feature-item">Health check no startup + background re-check de providers offline</div>
+        
+        <div class="feature-item">/modelo troca provider em tempo real · /provedores lista estado atual</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">/provedores</div>
+        <div class="mt-res">✅ claude [CODIGO] · ✅ groq [LEVE] · ✅ gemini [LEVE] · ⚠️ together [offline]</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Sandbox Executor</div>
+      </div>
+      <div class="module-desc">Ambiente de execução isolado em /tmp com timeout configurável. Roda Python e Node.js. É o único teste formal do sistema — todo projeto gerado passa pelo sandbox antes de ser publicado.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Execução em diretório temporário isolado</div>
+        
+        <div class="feature-item">Timeout de 30s (configurável via SANDBOX_TIMEOUT)</div>
+        
+        <div class="feature-item">Remove variáveis de ambiente sensíveis antes da execução</div>
+        
+        <div class="feature-item">Captura stdout/stderr (limite 4000 chars) para contexto de correção</div>
+        
+        <div class="feature-item">Limitação conhecida: não abre browser — HTML precisa de DOMContentLoaded explícito</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">sandbox.run(project_files)</div>
+        <div class="mt-res">✅ exit_code=0 · output: &#39;Server running on :5000&#39; · 1.2s</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Presenter Agent</div>
+      </div>
+      <div class="module-desc">Gera apresentação HTML profissional self-contained a partir de qualquer repositório GitHub ou URL ao vivo. Inclui fallback para Wayback Machine em SPAs sem conteúdo estático.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Lê repo via GitHub API ou scraping de URL ao vivo</div>
+        
+        <div class="feature-item">Fallback Wayback Machine para SPAs (React, Vue, etc.)</div>
+        
+        <div class="feature-item">HTML self-contained — funciona offline, sem dependências externas</div>
+        
+        <div class="feature-item">7 páginas landscape: capa, visão geral, métricas, entregas, pendências, ideias, time</div>
+        
+        <div class="feature-item">Enviado como documento .html no Telegram</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">/apresentar https://github.com/user/crm-pro</div>
+        <div class="mt-res">📊 Gerando apresentação... ✅ crm-pro-presentation.html (142kb) enviado</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">Esteira de Pendências</div>
+      </div>
+      <div class="module-desc">Sistema de backlog vivo integrado ao Telegram. PENDENCIAS.md como fonte de verdade. /proximo executa o próximo item, /aprovar dá baixa após o PR ser revisado.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">/pendente adiciona item ao backlog do repo</div>
+        
+        <div class="feature-item">/pendencias lista backlog priorizado (🔴🟡🟢)</div>
+        
+        <div class="feature-item">/proximo gera brief de 3 partes: contexto, mudanças planejadas, critério de sucesso</div>
+        
+        <div class="feature-item">/aprovar baixa o item após revisão do PR</div>
+        
+        <div class="feature-item">PENDENCIAS.md editado diretamente no GitHub via PyGithub</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">/proximo</div>
+        <div class="mt-res">📋 Próxima pendência: &#39;Briefing persistence — salvar BRIEFING.md no repo gerado&#39; · Confirme com /aprovar para iniciar</div>
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="roadmap">
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">Evolução por fases</h2>
+
+  <div class="roadmap-grid" style="margin-top:2rem;">
+    
+    
+    
+    <div class="roadmap-card done fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 01</span>
+        <span class="status-badge done">✓ Concluído</span>
+      </div>
+      <div class="roadmap-title">Base — MVP Funcional</div>
+      <div class="roadmap-sub">Bot que gera, testa e publica de forma autônoma</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>/criar com sandbox + autocorreção + GitHub</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>/melhorar com edição cirúrgica + PR</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>9 providers de IA com roteamento leve/pesado</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Research Agent + Briefing Agent + Planning Mode</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>SAFETY Sprint 1 (Protected Paths, Modo Paranoico, Fase Zero)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Framework north_star/ completo (7 documentos)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>/apresentar, /proximo, /testar, /pendente</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card current fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 02</span>
+        <span class="status-badge current">● Em andamento</span>
+      </div>
+      <div class="roadmap-title">Fase 2.5 — Estabilização Estruturada</div>
+      <div class="roadmap-sub">Pipeline robusto que nunca trava e sempre retorna resultado claro</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Timeout por step de pipeline (research 30s, generate 180s, fix 120s)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Progress feedback em tempo real durante geração</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Cancel real por linguagem natural + inline keyboard</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Modo econômico de tokens</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Teste de Coerência: IA valida se código implementa o briefing</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Critério de saída: 10 projetos sequenciais, 100% sucesso ou fail claro</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card planned fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 03</span>
+        <span class="status-badge planned">○ Planejado</span>
+      </div>
+      <div class="roadmap-title">Fase 3 — Multi-Agentes CrewAI</div>
+      <div class="roadmap-sub">Time especializado com papéis definidos e feedback corretivo</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>5 agentes: Architect → Developer → Tester → Corrector → Mentor</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Refinamento iterativo: /refine add autenticação</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Governança de agentes: coleta de performance, feedback corretivo, escalação</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Briefing persistence: BRIEFING.md salvo no GitHub do projeto gerado</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>SAFETY Sprint 2-3: security scan, pip audit, pre-deploy checks</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Webhook n8n para acionamento externo</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card vision fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 04</span>
+        <span class="status-badge vision">◇ Visão</span>
+      </div>
+      <div class="roadmap-title">Fase 4 — Expansão e Autonomia Total</div>
+      <div class="roadmap-sub">Sistema que evolui a si mesmo com supervisão humana mínima</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Roteamento automático por performance medida em produção</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Relatório semanal de performance por agente via Telegram</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Checkpoint de pipeline: retomar geração sem re-perguntar ao usuário</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Análise comparativa de modelos por tipo de tarefa (formalização da brisa)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>/melhorar aplicado ao próprio Kush-Dev com modo paranoico completo</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Módulos reutilizáveis auto-descobertos pelo Research Agent</div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="next">
+  <div class="section-label">Próximos Passos</div>
+  <h2 class="section-title">Priorizado por urgência</h2>
+
+  <div style="margin-top:2.5rem;">
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot high"></div>
+          <span class="steps-group-label priority-high">Alta Prioridade</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Timeout por step de pipeline</div>
+            <div class="step-card-desc">asyncio.wait_for em cada chamada de provider com tempo proporcional ao trabalho. Hoje um step travado de 4min consome todo o budget de 5min do pipeline.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">test_coherence — campos contextuais obrigatórios</div>
+            <div class="step-card-desc">Rejeitar payload de avaliação que não contenha found_features E (missing_features OU critical_issues). Score sem contexto = avaliação inválida = retry.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Prompt HTML — addEventListener dentro de DOMContentLoaded</div>
+            <div class="step-card-desc">Listeners fora do DOMContentLoaded causam TypeError silencioso que paralisa o script. Sandbox não detecta — só o browser. Exigir no prompt de geração e melhoria.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot mid"></div>
+          <span class="steps-group-label priority-mid">Próximas Entregas</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Briefing persistence no repo gerado</div>
+            <div class="step-card-desc">Salvar BRIEFING.md (ou .kush/briefing.json) no GitHub do projeto ao concluir /aprovar. Cada /melhorar futuro lê o briefing e sugere completar gaps antes de adicionar features novas.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Validação de disponibilidade no startup</div>
+            <div class="step-card-desc">Pingar cada provider registrado com chamada leve. Montar fila de fallback dinamicamente com base no resultado — não em ordem hardcoded.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Coleta silenciosa de performance</div>
+            <div class="step-card-desc">Adicionar campos na tabela Tasks: agent_id, correction_attempts, coherence_score, sandbox_passed_first_try. Base para governança de agentes na Fase 3.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot low"></div>
+          <span class="steps-group-label priority-low">Fundação Técnica</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Checkpoint de pipeline</div>
+            <div class="step-card-desc">Salvar estado intermediário (research + questions + summary) entre steps. Se generate_project falhar após o usuário aprovar, retomar sem re-perguntar.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Relatório semanal de performance por agente</div>
+            <div class="step-card-desc">Agregar pass rate, correction rate e coherence avg por agente. Enviar para Bruno via Telegram. Acionar após 4 semanas de dados em produção.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">SAFETY Sprint 2-3</div>
+            <div class="step-card-desc">Security scan, pip audit, lint e pre-deploy checks antes de qualquer publicação no GitHub. Pré-requisito para /melhorar em projetos de produção da equipe.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="philosophy">
+  <div class="section-label">Filosofia</div>
+  <h2 class="section-title">O que guia cada decisão</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="north-star">
+      <div class="ns-icon">⭐</div>
+      <div class="ns-text">"Este projeto existe para evoluir — 1% ao dia é o mínimo, o máximo não existe"</div>
+    </div>
+    
+
+    
+    <div class="principles-grid">
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 01</div>
+        <div class="principle-text">Clarificar antes de construir: entender profundamente o que deve ser feito antes de gerar uma linha de código</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 02</div>
+        <div class="principle-text">Autonomia com transparência: agentes autônomos só funcionam quando o usuário sabe exatamente o que vai acontecer</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 03</div>
+        <div class="principle-text">Aprender de qualquer fonte: código externo é livro de receitas, não manual de instruções — expande o que existe, nunca limita</div>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="filter-box">
+      <div class="filter-label">Filtro de feature</div>
+      <div class="filter-text">Para cada ideia, perguntar: isso expande o que já existe? Se contradiz a filosofia de crescimento contínuo ou tenta reduzir escopo prematuramente — rejeitar e documentar o motivo.</div>
+    </div>
+    
+  </div>
+</section>
+
+
+<div class="divider"></div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">Kush-Dev</div>
+      <div class="footer-meta">Fase 2.5 — Estabilização Estruturada</div>
+    </div>
+
+    
+    <div class="footer-stats">
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">0</div>
+        <div class="footer-stat-label">linhas de código esc</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">3×</div>
+        <div class="footer-stat-label">auto-correções antes</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">9</div>
+        <div class="footer-stat-label">provedores de IA rot</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">100%</div>
+        <div class="footer-stat-label">projetos entregues c</div>
+      </div>
+      
+    </div>
+    
+
+    <div class="footer-sig">Bruno de Carvalho — Kush-Dev</div>
+  </div>
+</footer>
+
+<script>
+
+const termLines = [{"cls": "", "msg": "/criar dashboard de vendas com gr\u00e1ficos em Python + Flask", "who": "voce"}, {"cls": "gen", "msg": "\ud83d\udd0d Pesquisando... Chart.js recomendado, padr\u00e3o MVC, aten\u00e7\u00e3o ao CSRF em forms. Tenho 3 perguntas antes de gerar.", "who": "bot"}, {"cls": "ok", "msg": "\u2705 Sandbox OK \u00b7 Publicado \u2192 github.com/bruno/dashboard-vendas-flask", "who": "bot"}];
+const body = document.getElementById('termBody');
+const cursor = document.getElementById('termCursor');
+let lineIdx = 0;
+function addLine(line) {
+  const el = document.createElement('div');
+  el.className = 't-line';
+  const whoLabel = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? '❯' : '←';
+  const whoCls   = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? 'you' : 'bot';
+  el.innerHTML = `<span class="t-who ${whoCls}">${whoLabel}</span><span class="t-msg ${line.cls || ''}">${line.msg}</span>`;
+  body.insertBefore(el, cursor);
+  requestAnimationFrame(() => el.classList.add('visible'));
+}
+function runTerminal() {
+  if (lineIdx >= termLines.length) {
+    lineIdx = 0;
+    setTimeout(() => { body.querySelectorAll('.t-line').forEach(l => l.remove()); runTerminal(); }, 4000);
+    return;
+  }
+  addLine(termLines[lineIdx]);
+  lineIdx++;
+  const prev = termLines[lineIdx - 1];
+  const isUser = prev && (prev.who === 'você' || prev.who === 'voce' || prev.who === 'usuario');
+  setTimeout(runTerminal, isUser ? 700 : 350);
+}
+setTimeout(runTerminal, 800);
+
+
+const fadeEls = document.querySelectorAll('.fade-in');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+fadeEls.forEach(el => io.observe(el));
+
+function refitMarkmaps(){
+  document.querySelectorAll('.markmap svg').forEach(svg => {
+    svg.style.background = '#0a0a14';
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+window.addEventListener('load', () => {
+  setTimeout(refitMarkmaps, 600);
+  setTimeout(refitMarkmaps, 1800);
+});
+</script>
+
+</body>
+</html>
