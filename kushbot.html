@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KushBot — Atendente virtual para lojas de vaporização — recomenda produtos, ajuda na venda e passa o bastão pra um humano sem perder o fio da conversa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+<style>
+:root {
+  --bg: #07070F;
+  --surface: #0F0F1A;
+  --card: #131321;
+  --border: #1E1E32;
+  --primary: #2D9B4E;
+  --primary-dim: #2D9B4E26;   /* ~15% opacity */
+  --primary-glow: #2D9B4E59;  /* ~35% opacity */
+  --text: #F1F5F9;
+  --text-2: #94A3B8;
+  --text-3: #475569;
+  --green: #22C55E;
+  --yellow: #F59E0B;
+  --red: #EF4444;
+  --blue: #3B82F6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', sans-serif; line-height: 1.6;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(7,7,15,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; }
+.nav-logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+.nav-links { display: flex; gap: 1.5rem; list-style: none; }
+.nav-links a { color: var(--text-2); text-decoration: none; font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--primary); }
+.nav-phase {
+  font-size: 0.72rem; padding: 0.25rem 0.75rem; border-radius: 20px;
+  background: var(--primary-dim); color: var(--primary);
+  border: 1px solid var(--primary-glow); font-weight: 600;
+}
+
+section { padding: 7rem 2rem 4rem; max-width: 900px; margin: 0 auto; }
+.section-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem; }
+.section-title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; color: var(--text); }
+.section-sub { font-size: 1rem; color: var(--text-2); max-width: 620px; line-height: 1.7; }
+
+#hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; padding-top: 80px;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content: ''; position: absolute; top: -200px; left: 50%;
+  transform: translateX(-50%); width: 800px; height: 800px;
+  background: radial-gradient(circle, #2D9B4E1f 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0.9rem; border-radius: 20px;
+  background: var(--primary-dim); border: 1px solid var(--primary-glow);
+  font-size: 0.75rem; font-weight: 600; color: var(--primary);
+  margin-bottom: 1.5rem; width: fit-content;
+}
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+.hero-title { font-size: clamp(2.8rem, 8vw, 5rem); font-weight: 900; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
+.hero-title span { background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-tagline { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-2); max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1rem; transition: border-color 0.2s, transform 0.2s; }
+.stat-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.stat-num { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; }
+.stat-label { font-size: 0.73rem; color: var(--text-2); line-height: 1.4; }
+
+.terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.terminal-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: var(--card); border-bottom: 1px solid var(--border); }
+.terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+.terminal-dot:nth-child(1) { background: #EF4444; }
+.terminal-dot:nth-child(2) { background: #F59E0B; }
+.terminal-dot:nth-child(3) { background: #22C55E; }
+.terminal-title { margin-left: 0.5rem; font-size: 0.72rem; color: var(--text-3); }
+.terminal-body { padding: 1.25rem; min-height: 220px; display: flex; flex-direction: column; gap: 0.4rem; }
+.t-line { display: flex; gap: 0.6rem; opacity: 0; transform: translateX(-4px); transition: opacity 0.3s, transform 0.3s; line-height: 1.6; }
+.t-line.visible { opacity: 1; transform: none; }
+.t-who { flex-shrink: 0; font-size: 0.7rem; font-weight: 600; }
+.t-who.you { color: var(--primary); }
+.t-who.bot { color: var(--text-3); }
+.t-msg { color: var(--text-2); }
+.t-msg.gen { color: #818CF8; }
+.t-msg.ok { color: var(--green); }
+.t-cursor { display: inline-block; width: 8px; height: 1em; background: var(--primary); animation: blink 1s step-end infinite; vertical-align: middle; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.card:hover { border-color: var(--primary-glow); transform: translateY(-3px); box-shadow: 0 8px 30px var(--primary-dim); }
+
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+.stack-group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.stack-group-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tag { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-family: 'JetBrains Mono', monospace; }
+.tag.primary { background: var(--primary-dim); border-color: var(--primary-glow); color: var(--primary); }
+
+.flow-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem; transition: border-color 0.2s; }
+.flow-card:hover { border-color: var(--primary-glow); }
+.flow-title { font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
+.flow-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--primary-dim); border: 1px solid var(--primary-glow); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.flow-steps { display: flex; flex-direction: column; gap: 0; }
+.flow-step { display: flex; gap: 1rem; align-items: flex-start; }
+.step-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--primary-dim); border: 1px solid var(--primary-glow); color: var(--primary); font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.step-connector { width: 1px; flex: 1; min-height: 20px; background: var(--border); margin: 3px 0; }
+.step-text { font-size: 0.84rem; color: var(--text-2); padding-bottom: 1rem; line-height: 1.55; }
+
+.module-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; transition: border-color 0.2s, transform 0.2s; }
+.module-card:hover { border-color: var(--primary-glow); transform: translateY(-3px); }
+.module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.module-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.module-badge { font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 6px; background: var(--primary-dim); color: var(--primary); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.module-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.6; }
+.module-features { display: flex; flex-direction: column; gap: 0.4rem; }
+.feature-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: var(--text-2); }
+.feature-item::before { content: '▸'; color: var(--primary); flex-shrink: 0; margin-top: 0.05rem; }
+.module-terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.875rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; }
+.mt-cmd { color: var(--text-3); margin-bottom: 0.3rem; }
+.mt-cmd::before { content: '$ '; color: var(--primary); }
+.mt-res { color: var(--green); }
+
+.roadmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.roadmap-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; position: relative; overflow: hidden; transition: border-color 0.2s; }
+.roadmap-card.done    { border-top: 3px solid var(--green); }
+.roadmap-card.current { border-top: 3px solid var(--primary); box-shadow: 0 0 30px var(--primary-dim); }
+.roadmap-card.planned { border-top: 3px solid var(--yellow); }
+.roadmap-card.vision  { border-top: 3px solid var(--text-3); }
+.roadmap-card:hover { border-color: var(--primary-glow); }
+.roadmap-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+.roadmap-phase { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: var(--text-3); font-weight: 600; }
+.status-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 6px; }
+.status-badge.done    { background: rgba(34,197,94,0.15); color: var(--green); }
+.status-badge.current { background: var(--primary-dim); color: var(--primary); }
+.status-badge.planned { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.status-badge.vision  { background: rgba(71,85,105,0.3); color: var(--text-3); }
+.roadmap-title { font-weight: 700; font-size: 0.98rem; color: var(--text); margin-bottom: 0.2rem; }
+.roadmap-sub   { font-size: 0.78rem; color: var(--text-3); margin-bottom: 1rem; }
+.roadmap-items { display: flex; flex-direction: column; gap: 0.45rem; }
+.roadmap-item  { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.79rem; color: var(--text-2); line-height: 1.45; }
+.ri-icon { flex-shrink: 0; margin-top: 0.1rem; font-size: 0.7rem; }
+.done    .ri-icon { color: var(--green); }
+.current .ri-icon { color: var(--primary); }
+.planned .ri-icon { color: var(--yellow); }
+.vision  .ri-icon { color: var(--text-3); }
+
+.steps-group { margin-bottom: 2.5rem; }
+.steps-group-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.steps-group-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.priority-high { color: var(--red); }
+.priority-mid  { color: var(--yellow); }
+.priority-low  { color: var(--blue); }
+.steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.step-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.2s, transform 0.2s; }
+.step-card:hover { border-color: var(--primary-glow); transform: translateY(-2px); }
+.step-card-title { font-weight: 600; font-size: 0.88rem; color: var(--text); margin-bottom: 0.5rem; }
+.step-card-desc  { font-size: 0.79rem; color: var(--text-2); line-height: 1.55; }
+.urgency-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.urgency-dot.high { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.urgency-dot.mid  { background: var(--yellow); }
+.urgency-dot.low  { background: var(--blue); }
+
+.north-star { background: linear-gradient(135deg, var(--primary-dim), rgba(129,140,248,0.1)); border: 1px solid var(--primary-glow); border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+.ns-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.ns-text { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700; color: var(--text); line-height: 1.4; font-style: italic; }
+.principles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.principle-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+.principle-num  { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--primary); font-weight: 600; margin-bottom: 0.6rem; }
+.principle-text { font-size: 0.83rem; color: var(--text-2); line-height: 1.6; }
+.filter-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 8px; padding: 1.25rem 1.5rem; }
+.filter-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem; }
+.filter-text  { font-size: 0.88rem; color: var(--text-2); line-height: 1.6; }
+
+/* MARKMAP — fix: cresce conforme conteúdo, sem corte */
+.mindmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 2rem; }
+.mindmap-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.mindmap-title-sm { font-size: 0.78rem; color: var(--text-3); font-weight: 500; }
+.mindmap-actions { display: flex; align-items: center; gap: 0.85rem; }
+.mindmap-hint { font-size: 0.7rem; color: var(--text-3); }
+.mindmap-open { font-size: 0.72rem; color: var(--primary); text-decoration: none; padding: 0.25rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; transition: border-color 0.2s, background 0.2s; font-family: 'JetBrains Mono', monospace; }
+.mindmap-open:hover { border-color: var(--primary); background: rgba(255,255,255,0.03); }
+.mindmap-canvas {
+  background: #0a0a14;
+  min-height: 480px;
+  max-height: 80vh;
+  height: clamp(480px, 60vh, 720px);
+  overflow: auto;
+}
+.mindmap-canvas .markmap { display: block; width: 100%; height: 100%; position: relative; }
+.mindmap-canvas .markmap svg { display: block; width: 100%; height: 100%; }
+
+footer { background: var(--surface); border-top: 1px solid var(--border); padding: 3rem 2rem; }
+.footer-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.footer-brand { display: flex; flex-direction: column; gap: 0.4rem; }
+.footer-logo { font-weight: 800; font-size: 1.1rem; color: var(--text); }
+.footer-logo span { color: var(--primary); }
+.footer-meta { font-size: 0.75rem; color: var(--text-3); }
+.footer-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-stat { text-align: center; }
+.footer-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: var(--primary); }
+.footer-stat-label { font-size: 0.68rem; color: var(--text-3); }
+.footer-sig { font-size: 0.72rem; color: var(--text-3); font-style: italic; }
+
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 2rem; }
+
+@media (max-width: 700px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  section { padding: 5rem 1.25rem 3rem; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2, .grid-3, .stack-grid, .roadmap-grid,
+  .principles-grid, .steps-grid { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .mindmap-canvas { height: 70vh; }
+}
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+.fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#hero">
+    <span class="nav-logo-dot"></span>
+    KushBot
+  </a>
+  <ul class="nav-links">
+    <li><a href="#overview">Visão</a></li>
+    <li><a href="#flows">Fluxos</a></li>
+    <li><a href="#modules">Módulos</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#next">Próximos</a></li>
+    <li><a href="#philosophy">Filosofia</a></li>
+  </ul>
+  <span class="nav-phase">Fase 1 — MVP ativo no Telegram (Elite Vape 420)</span>
+</nav>
+
+
+<section id="hero">
+  
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Fase 1 — MVP ativo no Telegram (Elite Vape 420)
+  </div>
+  
+
+  <h1 class="hero-title">KushBot</h1>
+  <p class="hero-tagline">Atendente virtual para lojas de vaporização — recomenda produtos, ajuda na venda e passa o bastão pra um humano sem perder o fio da conversa</p>
+
+  
+  <div class="stats-grid">
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">0</div>
+      <div class="stat-label">preços inventados pelo bot</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">6</div>
+      <div class="stat-label">lojas no pipeline de expansão</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">20</div>
+      <div class="stat-label">turnos de contexto persistido por cliente</div>
+    </div>
+    
+    <div class="stat-card fade-in">
+      <div class="stat-num">24h</div>
+      <div class="stat-label">ciclo de aprendizado automático</div>
+    </div>
+    
+  </div>
+  
+
+  
+  <div class="terminal fade-in">
+    <div class="terminal-bar">
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <span class="terminal-title">kushbot — demo</span>
+    </div>
+    <div class="terminal-body" id="termBody">
+      <span class="t-cursor" id="termCursor"></span>
+    </div>
+  </div>
+  
+</section>
+
+<div class="divider"></div>
+
+
+<section id="overview">
+  <div class="section-label">Visão Geral</div>
+  <h2 class="section-title">KushBot</h2>
+  <p class="section-sub">Atendente virtual para lojas de vaporização — recomenda produtos, ajuda na venda e passa o bastão pra um humano sem perder o fio da conversa</p>
+
+  
+  <div class="stack-grid fade-in">
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Linguagem</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Python 3.12</span>
+          
+            <span class="tag">JavaScript (Node 18+)</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Frameworks</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">python-telegram-bot 21.6</span>
+          
+            <span class="tag">Playwright 1.59</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">IA</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Anthropic Claude 3.5 Sonnet (agente principal)</span>
+          
+            <span class="tag">Claude Haiku (sumarização e learnings)</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Infra</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">Railway (deploy 24h)</span>
+          
+            <span class="tag">SQLite (persistência local)</span>
+          
+            <span class="tag">Cron / background loop</span>
+          
+        </div>
+      </div>
+      
+    
+      
+      <div class="stack-group">
+        <div class="stack-group-title">Banco</div>
+        <div class="tag-list">
+          
+            <span class="tag primary">SQLite (conversations.db)</span>
+          
+            <span class="tag">JSON flat-files (catalog.json, co_purchases.json, blog_prices.json)</span>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+  
+
+  
+  <div class="mindmap-wrap fade-in">
+    <div class="mindmap-header">
+      <span class="mindmap-title-sm">Mapa Mental — KushBot</span>
+      <span class="mindmap-actions">
+        <span class="mindmap-hint">scroll &amp; zoom para navegar</span>
+        
+        <a class="mindmap-open" href="https://brunoviskcrv.github.io/kush-pages/kushbot-mindmap.html" target="_blank" rel="noopener" title="Abrir em tela cheia (nova aba)">↗ Tela cheia</a>
+        
+      </span>
+    </div>
+    <div class="mindmap-canvas">
+      <div class="markmap">
+        <script type="text/template">
+# KushBot
+## Núcleo de IA
+### Claude Sonnet
+#### Consultas ao sistema (buscar produtos, ver detalhes, sugerir combinações, ver histórico de preços)
+#### Instruções dinâmicas de comportamento
+##### Exemplos reais de bons atendimentos
+##### Aprendizados coletados todo dia
+##### Catálogo da loja inserido na memória
+## Canais de atendimento
+### Telegram (ativo)
+### ChatFlow / WhatsApp (planejado)
+### Instagram (planejado)
+### Chat do site (planejado)
+## Dados
+### Catálogo atualizado a cada 3h
+### Histórico de conversas salvo localmente
+### Produtos frequentemente comprados juntos
+### Preços antigos do blog como referência
+### Exemplos de atendimentos bem-sucedidos
+### Aprendizados acumulados
+## Conexões com outros sistemas
+### Sistema de estoque e preços da loja (ao vivo)
+### Sistema de clientes e pedidos (planejado)
+### Ferramenta de atendimento multicanal (planejado)
+## Operação
+### Grupo de suporte no Telegram
+### Passagem automática pro humano com resumo
+### Rotina diária de aprendizado
+### Coleta de preços de outras fontes
+## Expansão
+### Elite Vape 420 (piloto)
+### High 420
+### Aldeia Vape
+### VapoKings
+### Vitrine Vape
+### Elite Smoke
+        </script>
+      </div>
+    </div>
+  </div>
+  
+</section>
+
+
+<div class="divider"></div>
+<section id="flows">
+  <div class="section-label">Fluxos</div>
+  <h2 class="section-title">Como funciona</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="flow-card">
+      <div class="flow-title">
+        <div class="flow-icon">→</div>
+        Atendimento Completo com Passagem pro Humano
+      </div>
+      <div class="flow-steps">
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Cliente manda mensagem no Telegram → o bot recebe e verifica se já tem um atendente humano cuidando desse cliente</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">O bot monta o contexto: instruções do negócio + exemplos reais de bons atendimentos + aprendizados do dia + últimas 20 mensagens da conversa</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">A IA decide: responde direto OU consulta o catálogo da loja para buscar produtos, preço ou sugestões de combinação</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">4</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-text">Se a situação pede um humano, o bot faz um resumo da conversa e avisa o grupo de suporte com tudo que aconteceu até ali</div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="step-line">
+            <div class="step-num">5</div>
+            
+          </div>
+          <div class="step-text">O atendente humano responde pelo grupo; quando quiser devolver pro bot, usa um comando simples e o KushBot assume de volta</div>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="modules">
+  <div class="section-label">Módulos</div>
+  <h2 class="section-title">Componentes principais</h2>
+
+  <div class="grid-2" style="margin-top:2rem;">
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">agent.py — Cérebro</div>
+      </div>
+      <div class="module-desc">É quem coordena tudo. Decide quando buscar produto no catálogo, quando consultar preço ao vivo, quando sugerir algo complementar e quando chamar um humano. Nunca inventa preço.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">4 consultas possíveis: buscar produtos, ver detalhes de um produto, sugerir combinações e ver histórico de preços</div>
+        
+        <div class="feature-item">Sinal interno para identificar quando o caso precisa de um humano</div>
+        
+        <div class="feature-item">Carrega exemplos reais de bons atendimentos e aprendizados do dia antes de cada conversa</div>
+        
+        <div class="feature-item">Faz um resumo claro da conversa para o atendente humano que assumir</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">await agent.chat(user_id=42, message=&#39;tem o Mighty Plus em estoque?&#39;)</div>
+        <div class="mt-res">→ consultar_produto(&#39;Mighty Plus&#39;) → Wbuy ao vivo → &#39;Sim! Mighty Plus R$2.890 — 3 unidades em estoque. PIX cai na hora 🔥&#39;</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">conversations.py — Memória</div>
+      </div>
+      <div class="module-desc">Guarda o histórico de cada conversa de forma segura no computador. As últimas 20 mensagens ficam prontas pra uso imediato; tudo mais fica salvo em disco caso precise.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Três áreas de armazenamento: conversas, mensagens e transferências para humano</div>
+        
+        <div class="feature-item">Últimas 20 mensagens disponíveis na hora; histórico completo guardado sem limite</div>
+        
+        <div class="feature-item">Sabe quando um humano está no controle de determinado cliente</div>
+        
+        <div class="feature-item">Consegue puxar mensagens de um período específico para o processo de aprendizado diário</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">conversations.get_history(user_id=42)</div>
+        <div class="mt-res">→ 20 últimas mensagens do SQLite, prontas para injetar no prompt do Claude</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">learnings.py — Evolução</div>
+      </div>
+      <div class="module-desc">Todo dia, analisa as conversas das últimas 24 horas e extrai o que aprendeu: perguntas novas, gírias do público, objeções que funcionaram. Tudo isso entra no bot do dia seguinte.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Registra perguntas frequentes com a melhor forma de responder</div>
+        
+        <div class="feature-item">Capta gírias e expressões novas do público de vaporização</div>
+        
+        <div class="feature-item">Guarda as respostas que resolveram objeções de clientes para repetir</div>
+        
+        <div class="feature-item">Anota produtos que clientes perguntaram mas não estão no catálogo</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">python learnings.py --since 7d</div>
+        <div class="mt-res">→ 47 conversas analisadas → learnings.md atualizado → bot amanhã entra sabendo das trends da semana</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">catalog.py + wbuy_client.py — Catálogo</div>
+      </div>
+      <div class="module-desc">Mantém o catálogo de produtos atualizado a cada 3 horas e permite buscas rápidas por nome. Para preço e estoque definitivos, consulta o sistema da loja em tempo real.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Adapta diferentes formatos de dados que chegam do sistema da loja</div>
+        
+        <div class="feature-item">Busca por nome sem se preocupar com acento ou maiúscula/minúscula</div>
+        
+        <div class="feature-item">Suporta 5 formas diferentes de se conectar ao sistema da loja</div>
+        
+        <div class="feature-item">Atualiza o catálogo em segundo plano sem travar o atendimento</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">search_local(&#39;vape conveccao até 1000&#39;)</div>
+        <div class="mt-res">→ [Mighty Plus, Venty, XQ2, Starry 4.0] com preço, marca, categoria e link da loja</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">co_purchases.py — Sugestões Baseadas em Compras Reais</div>
+      </div>
+      <div class="module-desc">Analisa pedidos reais para descobrir quais produtos costumam ser comprados juntos. As sugestões do bot vêm daí — nenhum chute, só comportamento real dos clientes.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Lê arquivos de pedidos exportados diretamente do sistema da loja</div>
+        
+        <div class="feature-item">Calcula quais produtos aparecem juntos com mais frequência</div>
+        
+        <div class="feature-item">Sugere até 5 produtos relacionados por item</div>
+        
+        <div class="feature-item">Se não há dados suficientes, o bot simplesmente não força sugestão</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">python co_purchases.py  # processa data/orders/</div>
+        <div class="mt-res">→ co_purchases.json gerado: &#39;Solo 3 → [Adaptador de Bong, Dichavador Space Case, Grinder SLX]&#39;</div>
+      </div>
+      
+    </div>
+    
+    <div class="module-card fade-in">
+      <div class="module-header">
+        <div class="module-name">golden_examples.py — Tom e Estilo</div>
+      </div>
+      <div class="module-desc">Carrega atendimentos reais que deram muito certo e mostra como exemplos pra IA antes de cada conversa. Bruno escolhe os melhores, o bot aprende o jeito de falar da loja.</div>
+      
+      <div class="module-features">
+        
+        <div class="feature-item">Exemplos marcados como prioritários entram primeiro</div>
+        
+        <div class="feature-item">Máximo de 6 exemplos por conversa para não encarecer o uso da IA</div>
+        
+        <div class="feature-item">Exemplos podem ser organizados por tipo: iniciante, cliente exigente, objeção de preço</div>
+        
+        <div class="feature-item">Basta editar os arquivos e reiniciar o bot para as mudanças entrarem em vigor</div>
+        
+      </div>
+      
+      
+      <div class="module-terminal">
+        <div class="mt-cmd">render_examples_block()</div>
+        <div class="mt-res">→ Bloco markdown com até 6 atendimentos reais injetado no system prompt antes de cada sessão</div>
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="roadmap">
+  <div class="section-label">Roadmap</div>
+  <h2 class="section-title">Evolução por fases</h2>
+
+  <div class="roadmap-grid" style="margin-top:2rem;">
+    
+    
+    
+    <div class="roadmap-card done fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 01</span>
+        <span class="status-badge done">✓ Concluído</span>
+      </div>
+      <div class="roadmap-title">Primeiro Bot no Telegram</div>
+      <div class="roadmap-sub">Bot funcionando na loja piloto</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Atendimento pelo Telegram usando IA com acesso ao catálogo real</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Catálogo da loja atualizado automaticamente a cada 3 horas</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Bot lembra as últimas 20 mensagens de cada cliente</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Quando o caso é complexo, passa pra um humano com resumo completo da conversa</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Exemplos reais de bons atendimentos ensinando o tom do bot</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Todo dia o bot aprende com as conversas do dia anterior</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Sugestões de produtos complementares baseadas em compras reais</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">✓</span>Preços antigos do blog como fonte de consulta quando necessário</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card current fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 02</span>
+        <span class="status-badge current">● Em andamento</span>
+      </div>
+      <div class="roadmap-title">Mais Canais + Reconhecer o Cliente</div>
+      <div class="roadmap-sub">Sair só do Telegram e atender em vários lugares ao mesmo tempo</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Conectar com a plataforma de atendimento do Giovanni (ChatFlow)</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Atender pelo WhatsApp, Instagram e chat do próprio site da loja</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Confirmar quem é o cliente antes de mostrar dados pessoais ou de pedido</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Bot lembra do cliente mesmo que ele troque de canal de atendimento</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Acessar histórico real de compras e pedidos do cliente</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Bot consegue consultar pedidos e verificar se produto ainda está na garantia</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">●</span>Quando a conversa ficar muito longa, fazer um resumo sem perder nada importante</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card planned fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 03</span>
+        <span class="status-badge planned">○ Planejado</span>
+      </div>
+      <div class="roadmap-title">Várias Lojas ao Mesmo Tempo</div>
+      <div class="roadmap-sub">Mesma tecnologia, cada loja com sua própria personalidade</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Expandir para High 420, Aldeia Vape e VapoKings</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Adicionar Vitrine Vape e Elite Smoke</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Cada loja com seu catálogo, seus contatos e seu jeito de falar — sem mistura</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Painel para cada loja gerenciar os exemplos de bons atendimentos</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">○</span>Histórico de clientes compartilhado com separação total entre lojas</div>
+        
+      </div>
+      
+    </div>
+    
+    
+    
+    <div class="roadmap-card vision fade-in">
+      <div class="roadmap-header">
+        <span class="roadmap-phase">FASE 04</span>
+        <span class="status-badge vision">◇ Visão</span>
+      </div>
+      <div class="roadmap-title">Atendente que Conhece a História do Cliente</div>
+      <div class="roadmap-sub">Bot que sabe tudo sobre cada cliente — sem precisar perguntar de novo</div>
+      
+      <div class="roadmap-items">
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Resposta precisa sobre garantia: &#39;seu produto vence em 16/06, ainda está coberto&#39;</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Acesso a todos os atendimentos anteriores do cliente na mesma conversa</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Sugestões proativas baseadas no que o cliente costuma comprar</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Identificar clientes que pararam de comprar e entender o motivo</div>
+        
+        <div class="roadmap-item"><span class="ri-icon">◇</span>Painel com números de atendimento e quantas conversas viraram vendas</div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="next">
+  <div class="section-label">Próximos Passos</div>
+  <h2 class="section-title">Priorizado por urgência</h2>
+
+  <div style="margin-top:2.5rem;">
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot high"></div>
+          <span class="steps-group-label priority-high">Alta Prioridade</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Conectar com o ChatFlow</div>
+            <div class="step-card-desc">Integrar o KushBot no painel de atendimento do Giovanni para responder clientes pelo WhatsApp, Instagram e chat do site — mantendo a passagem pro humano no mesmo lugar.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Histórico real de compras e garantias</div>
+            <div class="step-card-desc">Dar ao bot acesso ao sistema de pedidos da loja. Assim ele deixa de ser só um vendedor simpático e passa a saber o que o cliente comprou, quando comprou e se ainda está na garantia.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Reconhecer o cliente entre diferentes canais</div>
+            <div class="step-card-desc">Definir como o bot vai confirmar a identidade do cliente (pelo número do pedido, e-mail ou telefone) logo na primeira mensagem — isso é o que permite lembrar do histórico dele em qualquer canal.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot mid"></div>
+          <span class="steps-group-label priority-mid">Próximas Entregas</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Resumir conversas muito longas</div>
+            <div class="step-card-desc">Quando uma conversa passar de 20 mensagens, usar a IA para fazer um resumo do que ficou pra trás — assim o bot continua o contexto sem ficar caro demais.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Expandir para High 420 e Aldeia Vape</div>
+            <div class="step-card-desc">Configurar o bot para a segunda e terceira loja, cada uma com seu próprio catálogo, tom de voz e contatos — testando se o modelo funciona antes de multiplicar para todas as 6 lojas.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Aprendizado diário automático</div>
+            <div class="step-card-desc">Programar o processo de aprendizado para rodar todo dia às 3h da manhã e salvar os resultados automaticamente — fechando o ciclo de melhoria sem precisar de nenhuma ação manual.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="steps-group">
+        <div class="steps-group-header">
+          <div class="urgency-dot low"></div>
+          <span class="steps-group-label priority-low">Fundação Técnica</span>
+        </div>
+        <div class="steps-grid">
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Alimentar as sugestões com pedidos reais</div>
+            <div class="step-card-desc">Bruno precisa colocar os arquivos de pedidos reais na pasta certa e rodar o processo de análise — hoje as sugestões de produtos combinados estão paradas por falta desses dados.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Escolher os primeiros exemplos de bons atendimentos</div>
+            <div class="step-card-desc">Adicionar de 3 a 6 atendimentos reais que deram certo, cobrindo três situações: cliente iniciante, cliente que reclamou do preço e cliente experiente querendo produto concentrado.</div>
+          </div>
+          
+          <div class="step-card fade-in">
+            <div class="step-card-title">Acompanhar quanto está custando a IA</div>
+            <div class="step-card-desc">Registrar o custo de cada conversa e criar um aviso quando o gasto médio por atendimento passar de um limite — especialmente importante antes de expandir para 6 lojas.</div>
+          </div>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+</section>
+
+
+
+<div class="divider"></div>
+<section id="philosophy">
+  <div class="section-label">Filosofia</div>
+  <h2 class="section-title">O que guia cada decisão</h2>
+
+  <div style="margin-top:2rem;" class="fade-in">
+    
+    <div class="north-star">
+      <div class="ns-icon">⭐</div>
+      <div class="ns-text">"Um bot que nunca chuta — cada recomendação vem do catálogo real da loja, cada preço vem do sistema ao vivo, cada sugestão vem do que os clientes de verdade compraram juntos."</div>
+    </div>
+    
+
+    
+    <div class="principles-grid">
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 01</div>
+        <div class="principle-text">Honesto sobre o que não sabe: se não tem certeza do preço agora, diz que vai verificar — nunca inventa</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 02</div>
+        <div class="principle-text">Memória que respeita o cliente: o bot lembra do que foi falado antes, e o atendente humano que assumir recebe tudo que aconteceu na conversa</div>
+      </div>
+      
+      <div class="principle-card">
+        <div class="principle-num">PRINCÍPIO 03</div>
+        <div class="principle-text">Cada loja é uma loja: o bot da Elite Vape não fala sobre pedidos feitos na Aldeia Vape — nenhuma informação vaza entre lojas</div>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="filter-box">
+      <div class="filter-label">Filtro de feature</div>
+      <div class="filter-text">Antes de criar qualquer funcionalidade nova, a pergunta é: isso evita que o bot chute, ou facilita a vida do cliente? Se não for nenhum dos dois, não entra.</div>
+    </div>
+    
+  </div>
+</section>
+
+
+<div class="divider"></div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">KushBot</div>
+      <div class="footer-meta">Fase 1 — MVP ativo no Telegram (Elite Vape 420)</div>
+    </div>
+
+    
+    <div class="footer-stats">
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">0</div>
+        <div class="footer-stat-label">preços inventados pe</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">6</div>
+        <div class="footer-stat-label">lojas no pipeline de</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">20</div>
+        <div class="footer-stat-label">turnos de contexto p</div>
+      </div>
+      
+      <div class="footer-stat">
+        <div class="footer-stat-num">24h</div>
+        <div class="footer-stat-label">ciclo de aprendizado</div>
+      </div>
+      
+    </div>
+    
+
+    <div class="footer-sig">Bruno Carvalho / Elite Vape 420</div>
+  </div>
+</footer>
+
+<script>
+
+const termLines = [{"cls": "", "msg": "Quero um vape at\u00e9 R$600, nunca usei antes", "who": "voce"}, {"cls": "gen", "msg": "\u2192 pedido pro sistema: buscar vaporizadores para iniciante at\u00e9 R$600 \u2026 4 op\u00e7\u00f5es encontradas no cat\u00e1logo real", "who": "bot"}, {"cls": "ok", "msg": "Show! Pra come\u00e7ar bem: G Pen Dash \u2014 3 temperaturas pr\u00e9-definidas, liga e usa. Cabe no or\u00e7amento. Quer que eu verifique o estoque agora? \ud83c\udf3f", "who": "bot"}];
+const body = document.getElementById('termBody');
+const cursor = document.getElementById('termCursor');
+let lineIdx = 0;
+function addLine(line) {
+  const el = document.createElement('div');
+  el.className = 't-line';
+  const whoLabel = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? '❯' : '←';
+  const whoCls   = line.who === 'você' || line.who === 'voce' || line.who === 'usuario' ? 'you' : 'bot';
+  el.innerHTML = `<span class="t-who ${whoCls}">${whoLabel}</span><span class="t-msg ${line.cls || ''}">${line.msg}</span>`;
+  body.insertBefore(el, cursor);
+  requestAnimationFrame(() => el.classList.add('visible'));
+}
+function runTerminal() {
+  if (lineIdx >= termLines.length) {
+    lineIdx = 0;
+    setTimeout(() => { body.querySelectorAll('.t-line').forEach(l => l.remove()); runTerminal(); }, 4000);
+    return;
+  }
+  addLine(termLines[lineIdx]);
+  lineIdx++;
+  const prev = termLines[lineIdx - 1];
+  const isUser = prev && (prev.who === 'você' || prev.who === 'voce' || prev.who === 'usuario');
+  setTimeout(runTerminal, isUser ? 700 : 350);
+}
+setTimeout(runTerminal, 800);
+
+
+const fadeEls = document.querySelectorAll('.fade-in');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+fadeEls.forEach(el => io.observe(el));
+
+function refitMarkmaps(){
+  document.querySelectorAll('.markmap svg').forEach(svg => {
+    svg.style.background = '#0a0a14';
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+window.addEventListener('load', () => {
+  setTimeout(refitMarkmaps, 600);
+  setTimeout(refitMarkmaps, 1800);
+});
+</script>
+
+</body>
+</html>
